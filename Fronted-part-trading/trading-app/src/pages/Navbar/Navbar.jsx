@@ -52,7 +52,10 @@ export default function Navbar() {
             <Sidebar />
           </SheetContent>
         </Sheet>
-        <p className="text-sm lg:text-base cursor-pointer">Goutam Treading</p>
+        <p className="text-sm lg:text-base cursor-pointer">
+          <span className="text-orange-700 font-bold text-2xl">Goutam</span>
+          <span className="text-xl">Tead</span>
+        </p>
 
         <div className="p-0 ml-5">
           <Button variant="outline" className="flex items-center gap-3">

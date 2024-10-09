@@ -15,6 +15,7 @@ import {
   WalletIcon,
 } from "lucide-react";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const manu = [
   {
@@ -65,12 +66,14 @@ const manu = [
 ];
 
 const Sidebar = () => {
+  const navigate = useNavigate();
   return (
     <div className="mt-4 space-y-4">
       {manu.map((item) => (
         <div className="" key={item.name}>
           <SheetClose className="w-full">
             <Button
+              onClick={() => navigate(item.path)}
               variant="outline"
               className="flex items-center gap-5 py-6 w-full "
             >
