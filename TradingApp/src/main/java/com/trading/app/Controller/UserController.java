@@ -2,8 +2,8 @@ package com.trading.app.Controller;
 
 import com.trading.app.Response.ApiResponse;
 import com.trading.app.Response.AuthResponse;
-import com.trading.app.Response.ForgetPasswordRequest;
-import com.trading.app.Response.ResetPasswordRequest;
+import com.trading.app.Request.ForgetPasswordRequest;
+import com.trading.app.Request.ResetPasswordRequest;
 import com.trading.app.Service.implementation.EmailService;
 import com.trading.app.Service.ForgetPasswordService;
 import com.trading.app.Service.UserService;
