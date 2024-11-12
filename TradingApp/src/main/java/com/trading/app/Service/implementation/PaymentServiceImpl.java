@@ -27,7 +27,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private PaymentOrderRepository paymentOrderRepository;
 
-    @Value("${stipe.api.key}")
+    @Value("${stripe.api.key}")
     private String stripeSecretKey;
 
     @Value("${razorpay.api.key}")
@@ -93,7 +93,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponse createRazerpayPaymenting(User user, Long amount , Long order) throws RazorpayException {
+    public PaymentResponse createRazorpayPayment(User user, Long amount , Long order) throws RazorpayException {
 
         Long Amount = amount*100;
 
@@ -122,7 +122,7 @@ public class PaymentServiceImpl implements PaymentService {
             paymentLinkRequest.put("reminder_enable" , true);
 
             //set the callback URL and method after successfully redirect this url
-            paymentLinkRequest.put("callback_url" , "http://localhost:8080/wallet");
+            paymentLinkRequest.put("callback_url" , "http://localhost:5173/wallet?order_id="+order);
             paymentLinkRequest.put("callback_method" , "get");
 
 
@@ -145,7 +145,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponse createStripePaymenting(User user, Long amount, Long orderId) throws StripeException {
+    public PaymentResponse createStripePayment(User user, Long amount, Long orderId) throws StripeException {
 
         Stripe.apiKey = stripeSecretKey;
 

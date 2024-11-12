@@ -36,9 +36,9 @@ public class PaymentController {
 
 
         if (paymentMethod.equals(PaymentMethod.RAZORPAY)){
-            paymentResponse = paymentService.createRazerpayPaymenting(user , amount , order.getId());
+            paymentResponse = paymentService.createRazorpayPayment(user , amount , order.getId());
         }else {
-            paymentResponse = paymentService.createStripePaymenting(user , amount , order.getId());
+            paymentResponse = paymentService.createStripePayment(user , amount , order.getId());
         }
 
         return new ResponseEntity<>(paymentResponse , HttpStatus.CREATED);

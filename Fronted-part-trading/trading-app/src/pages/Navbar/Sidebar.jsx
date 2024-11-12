@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose } from "@/components/ui/sheet";
+import { logout } from "@/store/Auth/Action";
 import {
   DashboardIcon,
   ExitIcon,
@@ -15,7 +16,9 @@ import {
   WalletIcon,
 } from "lucide-react";
 import React from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const manu = [
   {
@@ -67,13 +70,24 @@ const manu = [
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    toast.success("Logout successfully ...");
+    dispatch(logout());
+  };
   return (
-    <div className="mt-4 space-y-4">
+    <div className="mt-4 space-y-4 ">
       {manu.map((item) => (
         <div className="" key={item.name}>
           <SheetClose className="w-full">
             <Button
-              onClick={() => navigate(item.path)}
+              onClick={() => {
+                navigate(item.path);
+                if (item.name == "Logout") {
+                  handleLogout();
+                }
+              }}
               variant="outline"
               className="flex items-center gap-5 py-6 w-full "
             >

@@ -1,4 +1,4 @@
-package com.trading.app.Response;
+package com.trading.app.Request;
 
 import com.trading.app.domain.VerificationType;
 import lombok.Data;

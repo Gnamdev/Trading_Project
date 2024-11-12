@@ -6,6 +6,7 @@ import com.trading.app.domain.Order_Type;
 import com.trading.app.model.Order;
 import com.trading.app.model.User;
 import com.trading.app.model.Wallet;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class WalletServiceImpl implements WalletService {
 
 
@@ -61,7 +63,7 @@ public class WalletServiceImpl implements WalletService {
     public Wallet walletToWalletTransfer(User sender, Wallet receiverWallet, Long amount) {
 
         Wallet senderWallet = getUserWallet(sender);
-
+        log.info(" before Sender wallet balance : " + senderWallet.getBalance() + "amount -> " + amount);
 
         if (senderWallet.getBalance().compareTo(BigDecimal.valueOf(amount)) < 0) {
 
@@ -70,16 +72,19 @@ public class WalletServiceImpl implements WalletService {
         BigDecimal subtractBalance = senderWallet.getBalance().
                 subtract(BigDecimal.valueOf(amount));
         senderWallet.setBalance(subtractBalance);
-
+        log.info(" before sender wallet balance : " + senderWallet.getBalance());
         walletRepository.save(senderWallet);
 
 
         //add into receiver wallet
-
+        log.info(" before receiver wallet balance : " + receiverWallet.getBalance());
         BigDecimal receiveBalance = receiverWallet.getBalance().add(BigDecimal.valueOf(amount));
+
 
         receiverWallet.setBalance(receiveBalance);
 
+        walletRepository.save(receiverWallet);
+        log.info(" After receiver wallet balance : " + receiverWallet.getBalance());
 
         return senderWallet;
     }

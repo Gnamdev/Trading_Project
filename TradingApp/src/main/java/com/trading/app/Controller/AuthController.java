@@ -1,6 +1,9 @@
 package com.trading.app.Controller;
 
 import com.trading.app.Config.JwtProvider;
+import com.trading.app.Exception.ValidationException;
+import com.trading.app.FormData.UserLoginData;
+import com.trading.app.FormData.UserRegisterFormData;
 import com.trading.app.Repository.UserRepository;
 import com.trading.app.Response.AuthResponse;
 import com.trading.app.Service.WatchListService;
@@ -11,6 +14,9 @@ import com.trading.app.Utills.OtpUtils;
 import com.trading.app.model.TwoFectoreOtp;
 import com.trading.app.model.User;
 
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -18,8 +24,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -39,32 +51,42 @@ public class AuthController {
    }
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> register(@RequestBody User user) throws Exception {
-        User byEmail = userRepository.findByEmail(user.getEmail());
+    public ResponseEntity<AuthResponse> register(@RequestBody @Valid UserRegisterFormData userRegisterFormData, BindingResult result)  {
+        User byEmail = userRepository.findByEmail(userRegisterFormData.getEmail());
 
-        if (byEmail != null) {
-            throw new Exception("Email is already used in other accound");
+        // Validate form data
+        if (result.hasErrors()) {
+            List<String> errors = result.getAllErrors()
+                    .stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.toList());
+            throw new ValidationException(errors);
         }
 
+        // Check if email is already used
+        if (userRepository.findByEmail(userRegisterFormData.getEmail()) != null) {
+            throw new ValidationException(Collections.singletonList("Email is already in use"));
+        }
 
+        // Create and set up new User
         User newUser = new User();
-        newUser.setEmail(user.getEmail());
-        newUser.setPassword(user.getPassword());
-        newUser.setFullName(user.getFullName());
+        newUser.setEmail(userRegisterFormData.getEmail());
+        newUser.setPassword(userRegisterFormData.getPassword());  // Make sure the password is hashed if needed
+        newUser.setFullName(userRegisterFormData.getFullName());
 
-        UsernamePasswordAuthenticationToken authentication  = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword());
-
+        // Authenticate and generate JWT
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(newUser.getEmail(), newUser.getPassword());
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
-
         String jwt = JwtProvider.generateToken(authentication);
 
-        User saveUser = userRepository.save(newUser);
+        // Save user and initialize watch list
+        User savedUser = userRepository.save(newUser);
+        watchListService.createWatchList(savedUser);
 
-        watchListService.createWatchList(saveUser);
+        // Set up response
         AuthResponse authResponse = new AuthResponse();
         authResponse.setJwt(jwt);
-
         authResponse.setStatus(true);
         authResponse.setMessage("Successfully registered");
 
@@ -75,31 +97,34 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody User user) throws Exception {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody UserLoginData loginData, BindingResult result) throws Exception {
+        if (result.hasErrors()) {
+            List<String> errors = result.getAllErrors()
+                    .stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.toList());
+            throw new ValidationException(errors);
+        }
 
-
-        Authentication auth = authenticate(user.getEmail() , user.getPassword());
+        Authentication auth = authenticate(loginData.getEmail(), loginData.getPassword());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         String jwt = JwtProvider.generateToken(auth);
-        User authUser = userRepository.findByEmail(user.getEmail());
+        User authUser = userRepository.findByEmail(loginData.getEmail());
 
-        if(user.getTwoFactoreAuthentication().isEnabled()){
-
+        if (authUser.getTwoFactoreAuthentication().isEnabled()) {
             AuthResponse res = new AuthResponse();
-            res.setMessage("Two factore authentication is enabled");
+            res.setMessage("Two-factor authentication is enabled");
             res.setTwoFactorAuthEnabled(true);
             String otp = OtpUtils.generateOtp();
 
-            TwoFectoreOtp oldTwofactorOtp = twoOtpService.findByUser(user.getId());
-
-            if(oldTwofactorOtp != null){
+            TwoFectoreOtp oldTwofactorOtp = twoOtpService.findByUser(authUser.getId());
+            if (oldTwofactorOtp != null) {
                 twoOtpService.deleteTwoFectoreOtp(oldTwofactorOtp);
             }
 
-            twoOtpService.createTwoFectoreOtp(authUser , jwt , otp);
-
-            emailService.sendVerificationOtpByEmail(authUser.getEmail(),  otp);
+            twoOtpService.createTwoFectoreOtp(authUser, jwt, otp);
+            emailService.sendVerificationOtpByEmail(authUser.getEmail(), otp);
 
             res.setSession(new TwoFectoreOtp().getId());
 
@@ -109,12 +134,9 @@ public class AuthController {
         AuthResponse authResponse = new AuthResponse();
         authResponse.setJwt(jwt);
         authResponse.setStatus(true);
-        authResponse.setMessage("Successfully Login");
+        authResponse.setMessage("Successfully logged in");
 
-
-
-
-        return new ResponseEntity<>(authResponse , HttpStatus.CREATED);
+        return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
     }
 
     private Authentication authenticate(String email, String password) {
@@ -122,11 +144,11 @@ public class AuthController {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
         if (userDetails == null) {
-            throw new BadCredentialsException("Username and password is invalid");
+            throw new ValidationException(Collections.singletonList("Username and password is invalid"));
 
         }
         if (!userDetails.getPassword().equals(password)) {
-            throw new BadCredentialsException("Passwords do not match");
+            throw new ValidationException(Collections.singletonList("Passwords do not match"));
         }
         return new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAuthorities());
 
@@ -137,6 +159,8 @@ public class AuthController {
                                                           @RequestParam String id ) throws Exception {
 
         TwoFectoreOtp byId = twoOtpService.findById(id);
+
+        log.info("two factor user --->  {}" ,byId);
         if (twoOtpService.verifyTwoFectoreOtp(byId, otp)) {
 
             AuthResponse authResponse = new AuthResponse();

@@ -9,4 +9,5 @@ public interface TwoFectoreOtpRepo extends JpaRepository<TwoFectoreOtp, String> 
 
    TwoFectoreOtp findByUserId(Long userId);
 
+
 }

@@ -4,6 +4,8 @@ import com.trading.app.Response.ApiResponse;
 import com.trading.app.Response.AuthResponse;
 import com.trading.app.Request.ForgetPasswordRequest;
 import com.trading.app.Request.ResetPasswordRequest;
+
+
 import com.trading.app.Service.implementation.EmailService;
 import com.trading.app.Service.ForgetPasswordService;
 import com.trading.app.Service.UserService;
@@ -13,6 +15,7 @@ import com.trading.app.domain.VerificationType;
 import com.trading.app.model.ForgetPasswordToken;
 import com.trading.app.model.User;
 import com.trading.app.model.VarificationCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
+@Slf4j
 public class UserController {
 
 
@@ -45,14 +49,18 @@ public class UserController {
                                                     @PathVariable VerificationType verificationType) throws Exception {
         User userProfileByJwt = userService.findUserProfileByJwt(jwt);
 
+        log.info("user to send data {}" , userProfileByJwt);
         VarificationCode verificationCodeByUser = verificationCodeService.getVerificationCodeByUser(userProfileByJwt.getId());
 
+        log.info("verificationCode -> {}" , verificationCodeByUser);
         if (verificationCodeByUser == null) {
 
             verificationCodeByUser= verificationCodeService.sendVerificationCode( verificationType , userProfileByJwt);
 
+            log.info("verificationCode -> {}" , verificationCodeByUser);
         }
         if (verificationType.equals(VerificationType.EMAIL)){
+
             emailService.sendVerificationOtpByEmail(userProfileByJwt.getEmail() , verificationCodeByUser.getOtp());
 
         }
@@ -111,7 +119,7 @@ public class UserController {
     }
 
     @PatchMapping("/api/users/reset-password/verify-otp")
-    public ResponseEntity<ApiResponse> resetPassword(@RequestBody ResetPasswordRequest req, @RequestParam String id, @RequestHeader("Authorization") String jwt ) throws Exception {
+    public ResponseEntity<ApiResponse> resetPassword(@RequestBody ResetPasswordRequest  req, @RequestParam String id, @RequestHeader("Authorization") String jwt ) throws Exception {
 
         ForgetPasswordToken forgetPasswordToken = forgetPasswordService.findById(id);
 

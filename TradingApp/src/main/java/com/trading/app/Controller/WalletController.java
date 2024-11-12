@@ -1,11 +1,11 @@
 package com.trading.app.Controller;
 
-import com.trading.app.Response.PaymentResponse;
 import com.trading.app.Service.OrderService;
 import com.trading.app.Service.PaymentService;
 import com.trading.app.Service.UserService;
 import com.trading.app.Service.WalletService;
 import com.trading.app.model.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 @RestController
+@Slf4j
 public class WalletController {
 
     @Autowired
@@ -62,6 +63,8 @@ public class WalletController {
         User senderUser = userService.findUserProfileByJwt(jwt);
 
         Wallet receiverUser = walletService.findWalletById(walletId);
+
+        log.info("receiver user : " ,receiverUser.getBalance());
         Wallet wallet = walletService.walletToWalletTransfer(senderUser, receiverUser, req.getAmount());
 
         return new ResponseEntity<>(wallet , HttpStatus.ACCEPTED);

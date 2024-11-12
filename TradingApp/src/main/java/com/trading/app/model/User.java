@@ -22,7 +22,7 @@ public class User {
     private User_Role userRole = User_Role.ROLE_CUSTOMER;
 
    @Embedded
-  private  TwoFactoreAuthentication twoFactoreAuthentication = new TwoFactoreAuthentication();
+   private  TwoFactoreAuthentication twoFactoreAuthentication = new TwoFactoreAuthentication();
 
 
 

@@ -1,0 +1,22 @@
+.authContainer {
+    background-image: url(/src/assets/Homepage.webp);
+    height: 100vh; /* Ensures the container fills the screen height */
+    width: 100vw; /* Ensures the container fills the screen width */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Fixes the background image in place */
+    overflow: hidden; /* Prevents scrolling in all directions */
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
+.bgBlure{
+
+    backdrop-filter: blur(10px);
+
+}

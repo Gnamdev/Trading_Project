@@ -14,10 +14,14 @@ import {
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
+import { useSelector } from "react-redux";
+import { store } from "@/store/Store";
 
 export default function Navbar() {
+  const { auth } = useSelector((store) => store);
+
   return (
-    <div className="px-2 py-3 border-b bg-background bg-opacity-0 sticky top-0 left-0 right-0  flex justify-between items-center ">
+    <div className=" z-[20] px-2 py-3 border-b bg-background bg-opacity-0 sticky top-0 left-0 right-0  flex justify-between items-center ">
       <div className="flex items-center gap-3  ">
         <Sheet>
           <SheetTrigger>
@@ -41,7 +45,7 @@ export default function Navbar() {
                   </Avatar>
                   <div className="mt-2">
                     <span className="font-bold text-orange-700 ">Goutam</span>
-                    <span>Tread</span>
+                    <span>TradingHub</span>
                   </div>
                 </div>
               </SheetTitle>
@@ -54,7 +58,7 @@ export default function Navbar() {
         </Sheet>
         <p className="text-sm lg:text-base cursor-pointer">
           <span className="text-orange-700 font-bold text-2xl">Goutam</span>
-          <span className="text-xl">Tead</span>
+          <span className="text-xl">TradingHub</span>
         </p>
 
         <div className="p-0 ml-5">
@@ -67,7 +71,9 @@ export default function Navbar() {
 
       <div className="">
         <Avatar>
-          <AvatarFallback>g</AvatarFallback>
+          <AvatarFallback>
+            {auth.user?.fullName[0].toUpperCase()}
+          </AvatarFallback>
         </Avatar>
       </div>
     </div>

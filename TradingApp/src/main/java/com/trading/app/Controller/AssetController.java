@@ -4,8 +4,6 @@ import com.trading.app.Service.AssetServie;
 import com.trading.app.Service.UserService;
 import com.trading.app.model.Asset;
 import com.trading.app.model.User;
-import org.hibernate.mapping.BasicValue;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +41,7 @@ public class AssetController {
         return ResponseEntity.ok().body(assetByUserAndCoinsId);
     }
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<List<Asset>> getAssetsForUser( @RequestHeader("Authorization") String jwt) throws  Exception {
 
         User user = userService.findUserProfileByJwt(jwt);
